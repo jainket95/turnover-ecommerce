@@ -37,7 +37,6 @@ export const sendVerificationEmail = async (
 		try {
 			(async function () {
 				const info = await transporter.sendMail(mailOptions);
-				console.log('Message sent: %s', info.messageId);
 				console.log(
 					'Preview URL: %s',
 					nodemailer.getTestMessageUrl(info)
@@ -50,15 +49,3 @@ export const sendVerificationEmail = async (
 		}
 	});
 };
-
-// transporter.sendMail(mailOptions, (error, info) => {
-// 	if (error) {
-// 		 return console.log(error);
-// 	}
-// 	console.log('Message sent: %s', info.messageId);
-// });
-
-// Usage example
-// sendVerificationEmail('recipient@example.com').then(() => {
-// 	console.log('Verification email sent');
-// });

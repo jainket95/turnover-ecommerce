@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { type User } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import Button from './button';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 const verificationData = (email: string) => ({
 	heading: 'Verify your email',
@@ -21,12 +22,14 @@ type VerificationProps = {
 };
 const Verification = ({ email, setUser }: VerificationProps) => {
 	const router = useRouter();
+	const { setValue: setUserData } = useLocalStorage<User>('user');
 	const [code, setCode] = useState<string[]>(new Array(8).fill(''));
 
 	const { mutate, isPending } = api.user.verifyCode.useMutation(
 		createMutationOptions((data) => {
 			if (data?.email && data.isVerified) {
 				setUser(data);
+				setUserData(data);
 				toast.success('Account Verified Successfully');
 				setCode(new Array(8).fill(''));
 

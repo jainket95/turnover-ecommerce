@@ -1,9 +1,9 @@
 import {
 	type ChangeEvent,
-	type Dispatch,
-	type SetStateAction,
 	useState,
 	useEffect,
+	type Dispatch,
+	type SetStateAction,
 } from 'react';
 import Box from './box';
 import { api } from '../../trpc/react';
@@ -12,25 +12,11 @@ import Button from './button';
 import { type User } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import useLocalStorage from '../hooks/useLocalStorage';
-
-type LoginProps = {
-	type: string;
-	setUser: Dispatch<SetStateAction<User | null | void>>;
-	toggleForm: () => void;
-};
-
-type LoginDefaultProps = {
-	heading: string;
-	subHeadings: {
-		heading1: string;
-		heading2: string;
-	} | null;
-	buttonText: string;
-	redirect: {
-		text: string;
-		actionText: string;
-	};
-};
+import {
+	type UserState,
+	type LoginDefaultProps,
+	type SignupState,
+} from '../types';
 
 const defaultFormData = {
 	login: {
@@ -66,18 +52,11 @@ const signupState = {
 	...loginState,
 };
 
-type LoginState = {
-	email: string;
-	password: string;
+export type LoginProps = {
+	type: string;
+	setUser: Dispatch<SetStateAction<User | null | void>>;
+	toggleForm: () => void;
 };
-
-type SignupState = {
-	name: string;
-	email: string;
-	password: string;
-};
-
-type UserState = LoginState | SignupState;
 
 const getFormState = (isLoginForm: boolean) => {
 	return isLoginForm ? loginState : signupState;
@@ -100,7 +79,8 @@ export const createMutationOptions = (
 
 const Login = ({ type, setUser, toggleForm }: LoginProps) => {
 	const router = useRouter();
-	const { setValue: setUserData } = useLocalStorage<object>('user', {});
+	const { setValue: setUserData, removeValue } =
+		useLocalStorage<User>('user');
 	const isLoginForm = type === 'login';
 
 	const componentData: LoginDefaultProps = isLoginForm
@@ -117,6 +97,7 @@ const Login = ({ type, setUser, toggleForm }: LoginProps) => {
 
 	useEffect(() => {
 		setFormData(getFormState(isLoginForm));
+		removeValue('user');
 	}, [type, isLoginForm]);
 
 	const { mutate: mutateVerificationCode } =
@@ -132,9 +113,10 @@ const Login = ({ type, setUser, toggleForm }: LoginProps) => {
 
 	const { mutate: mutateSignup, isPending: isPendingSignup } =
 		api.user.signup.useMutation(
-			createMutationOptions((data) => {
+			createMutationOptions((data: User | void) => {
 				if (data?.email) {
 					setUser(data);
+					setUserData(data);
 					toast.success('Account successfully created.');
 					mutateVerificationCode({ email: data?.email });
 				}
@@ -152,6 +134,7 @@ const Login = ({ type, setUser, toggleForm }: LoginProps) => {
 						mutateVerificationCode({ email: data?.email });
 					} else {
 						setUserData(data);
+						toast.success('Logged in the account successfully');
 						router.push('/categories');
 					}
 				}
@@ -169,7 +152,6 @@ const Login = ({ type, setUser, toggleForm }: LoginProps) => {
 			toast.error('Please fill all the fields!');
 			return;
 		}
-		console.log(formData);
 		if (isLoginForm) {
 			mutateLogin({ ...formData });
 		} else {

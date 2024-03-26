@@ -130,20 +130,38 @@ const Categories = () => {
 	};
 
 	const handleCategoriesUpdate = () => {
-		// if (!user) return;
 		const userCategories: Categories = JSON.parse(
 			user.categories as string
 		) as Categories;
-		const updatedItems = categoriesData.map((category) => ({
-			...category,
-			isChecked: userCategories.data.includes(category.name),
-		}));
 
-		setCategories(updatedItems);
-		setPage({
-			...page,
-			pageData: updatedItems.slice(page.start, page.end),
-		});
+		if (userCategories.data.length > 0) {
+			const updatedCategories: Category[] = categoriesData.map(
+				(category) => {
+					const userCategory = userCategories.data.find(
+						(uc: Category) => uc.name === category.name
+					);
+
+					return {
+						...category,
+						isChecked: userCategory
+							? userCategory.isChecked
+							: category.isChecked,
+					};
+				}
+			);
+
+			setCategories(updatedCategories);
+			setPage({
+				...page,
+				pageData: updatedCategories.slice(page.start, page.end),
+			});
+		} else {
+			setCategories(categoriesData);
+			setPage({
+				...page,
+				pageData: categoriesData.slice(page.start, page.end),
+			});
+		}
 	};
 
 	const handleCategoryUpdate = (name: string) => {
@@ -157,7 +175,7 @@ const Categories = () => {
 			return category;
 		});
 
-		mutate({ email: user.email, category: name });
+		mutate({ email: user.email, categories: { data: updatedCategories } });
 
 		setCategories(() => updatedCategories);
 		setPage(() => ({
@@ -165,8 +183,6 @@ const Categories = () => {
 			pageData: updatedCategories.slice(page.start, page.end),
 		}));
 	};
-
-	console.log(page, perPageRows, user);
 
 	return (
 		<Box boxData={boxData}>

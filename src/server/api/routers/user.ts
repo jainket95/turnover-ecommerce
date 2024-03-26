@@ -7,6 +7,16 @@ import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
 import { sendVerificationEmail } from '~/mail/mail-service';
 import { type Categories } from '~/app/types';
 
+export const CategorySchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	isChecked: z.boolean(),
+});
+
+export const CategoriesSchema = z.object({
+	data: z.array(CategorySchema),
+});
+
 export const userRouter = createTRPCRouter({
 	signup: publicProcedure
 		.input(
@@ -109,19 +119,17 @@ export const userRouter = createTRPCRouter({
 			}
 		}),
 	updateCategories: publicProcedure
-		.input(z.object({ email: z.string(), category: z.string() }))
+		.input(z.object({ email: z.string(), categories: CategoriesSchema }))
 		.mutation(async ({ ctx, input }) => {
 			const user: User | null = await ctx.db.user.findUnique({
 				where: { email: input.email },
 			});
-			const categories: Categories = JSON.parse(
-				user?.categories as string
-			) as Categories;
+
 			if (!user) {
 				throw new Error('User not found');
 			} else {
 				const updatedCategories: Categories = {
-					data: [...categories.data, input.category],
+					data: [...input.categories.data],
 				};
 				const user: User | null = await ctx.db.user.update({
 					where: { email: input.email },

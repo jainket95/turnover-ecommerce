@@ -11,7 +11,6 @@ enum formType {
 }
 
 export default function Home() {
-	// const hello = await api.user.hello({ text: "from new user" });
 	const [form, setForm] = useState(formType.login);
 	const [user, setUser] = useState<User | null | void>(null);
 
