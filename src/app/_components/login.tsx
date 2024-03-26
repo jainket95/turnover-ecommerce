@@ -1,8 +1,21 @@
-import { type ChangeEvent, useState } from 'react';
+import {
+	type ChangeEvent,
+	type Dispatch,
+	type SetStateAction,
+	useState,
+	useEffect,
+} from 'react';
 import Box from './box';
+import { api } from '../../trpc/react';
+import toast from 'react-hot-toast';
+import Button from './button';
+import { type User } from '@prisma/client';
+import { useRouter } from 'next/navigation';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 type LoginProps = {
 	type: string;
+	setUser: Dispatch<SetStateAction<User | null | void>>;
 	toggleForm: () => void;
 };
 
@@ -43,7 +56,51 @@ const defaultFormData = {
 	},
 };
 
-const Login = ({ type, toggleForm }: LoginProps) => {
+const loginState = {
+	email: '',
+	password: '',
+};
+
+const signupState = {
+	name: '',
+	...loginState,
+};
+
+type LoginState = {
+	email: string;
+	password: string;
+};
+
+type SignupState = {
+	name: string;
+	email: string;
+	password: string;
+};
+
+type UserState = LoginState | SignupState;
+
+const getFormState = (isLoginForm: boolean) => {
+	return isLoginForm ? loginState : signupState;
+};
+
+export const createMutationOptions = (
+	onSuccessExtra?: (data: User | void) => Promise<void> | void
+) => {
+	return {
+		onSuccess: async (data: User | void) => {
+			if (onSuccessExtra) await onSuccessExtra(data);
+		},
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		onError: (e: any) => {
+			if (e instanceof Error)
+				toast.error(e?.message || 'Something went wrong');
+		},
+	};
+};
+
+const Login = ({ type, setUser, toggleForm }: LoginProps) => {
+	const router = useRouter();
+	const { setValue: setUserData } = useLocalStorage<object>('user', {});
 	const isLoginForm = type === 'login';
 
 	const componentData: LoginDefaultProps = isLoginForm
@@ -52,16 +109,72 @@ const Login = ({ type, toggleForm }: LoginProps) => {
 
 	const { heading, subHeadings, buttonText, redirect } = componentData;
 
-	const [formData, setFormData] = useState({
-		name: '',
-		email: '',
-		password: '',
-	});
+	const [formData, setFormData] = useState<UserState>(
+		getFormState(isLoginForm)
+	);
 
 	const [showPassword, setShowPassword] = useState(false);
 
+	useEffect(() => {
+		setFormData(getFormState(isLoginForm));
+	}, [type, isLoginForm]);
+
+	const { mutate: mutateVerificationCode } =
+		api.user.sendVerificationCode.useMutation(
+			createMutationOptions(() => {
+				// toast.success('');
+				toast.success(
+					'Verification code has been sent to your account'
+				);
+				setFormData(getFormState(isLoginForm));
+			})
+		);
+
+	const { mutate: mutateSignup, isPending: isPendingSignup } =
+		api.user.signup.useMutation(
+			createMutationOptions((data) => {
+				if (data?.email) {
+					setUser(data);
+					toast.success('Account successfully created.');
+					mutateVerificationCode({ email: data?.email });
+				}
+				setFormData(getFormState(isLoginForm));
+			})
+		);
+
+	const { mutate: mutateLogin, isPending: isPendingLogin } =
+		api.user.login.useMutation(
+			createMutationOptions(async (data) => {
+				if (data?.email) {
+					setUser(data);
+					if (!data?.isVerified) {
+						toast.success('Please verify your account');
+						mutateVerificationCode({ email: data?.email });
+					} else {
+						setUserData(data);
+						router.push('/categories');
+					}
+				}
+
+				setFormData(getFormState(isLoginForm)); // toast.success('');
+			})
+		);
+
 	const handleFormDataChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
+	};
+
+	const handleFormSubmit = () => {
+		if (Object.values(formData).some((item) => item.length <= 0)) {
+			toast.error('Please fill all the fields!');
+			return;
+		}
+		console.log(formData);
+		if (isLoginForm) {
+			mutateLogin({ ...formData });
+		} else {
+			mutateSignup({ ...formData } as SignupState);
+		}
 	};
 
 	return (
@@ -77,7 +190,7 @@ const Login = ({ type, toggleForm }: LoginProps) => {
 							type="text"
 							name="name"
 							id="name"
-							value={formData.name}
+							value={(formData as SignupState).name}
 							onChange={handleFormDataChange}
 							placeholder="Enter"
 						/>
@@ -119,9 +232,11 @@ const Login = ({ type, toggleForm }: LoginProps) => {
 						</div>
 					)}
 				</div>
-				<button className="h-14 w-full rounded-md  bg-black font-normal uppercase text-white">
-					{buttonText}
-				</button>
+				<Button
+					onClick={handleFormSubmit}
+					withLoader={isPendingLogin || isPendingSignup}
+					text={buttonText}
+				/>
 				<div className="w-full border-b border-gray-300 py-3.5"></div>
 			</div>
 			<p className="font-light text-gray-700">

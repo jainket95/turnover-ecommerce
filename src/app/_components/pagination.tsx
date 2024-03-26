@@ -10,7 +10,7 @@ const Pagination = ({
 	handlePageChange,
 }: PaginationProps) => {
 	return (
-		<div className="flex items-center justify-start text-[1.35rem] font-normal text-gray-400">
+		<div className="flex cursor-pointer items-center justify-start text-[1.35rem] font-normal text-gray-400">
 			<div
 				className="mr-3"
 				onClick={handlePageChange.bind(null, 'first')}

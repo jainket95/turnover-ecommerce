@@ -2,27 +2,31 @@ import {
 	MagnifyingGlassIcon,
 	ShoppingCartIcon,
 } from '@heroicons/react/24/outline';
-export function Header() {
+import TopHeader from './top-header';
+import Link from 'next/link';
+
+const Header = () => {
 	return (
 		<header className="bg-white">
+			<TopHeader />
 			<nav
 				className="max-w-100 mt-6 flex items-center justify-between px-6"
 				aria-label="Global"
 			>
 				<div className="flex lg:flex-1">
-					<a href="#" className="-m-1.5 p-1.5">
+					<Link href="/" className="-m-1.5 p-1.5">
 						<span className="text-4xl font-semibold uppercase text-black">
 							ecommerce
 						</span>
-					</a>
+					</Link>
 				</div>
 				<div className="lg:flex lg:gap-x-12">
-					<a
+					<Link
 						href="/categories"
 						className="text-sm font-semibold leading-6 text-gray-900"
 					>
 						Categories
-					</a>
+					</Link>
 					<a
 						href="#"
 						className="text-sm font-semibold leading-6 text-gray-900"
@@ -59,4 +63,6 @@ export function Header() {
 			</nav>
 		</header>
 	);
-}
+};
+
+export default Header;
