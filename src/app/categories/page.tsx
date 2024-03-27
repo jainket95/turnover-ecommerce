@@ -7,7 +7,7 @@ import { generateFakeCategories } from '~/utils';
 import { api } from '~/trpc/react';
 import { createMutationOptions } from '../_components/login';
 import toast from 'react-hot-toast';
-import { Categories, type Category, type Page } from '../types';
+import { type Categories, type Category, type Page } from '../types';
 import { useRouter } from 'next/navigation';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { type User } from '@prisma/client';

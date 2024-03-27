@@ -6,7 +6,7 @@ function useLocalStorage<T>(key: string, initialValue: T = {} as T) {
 	useEffect(() => {
 		const handleStorageChange = (event: StorageEvent) => {
 			if (event.key === key) {
-				setStoredValue(
+				setStoredValue(() =>
 					event.newValue
 						? (JSON.parse(event.newValue) as T)
 						: initialValue
@@ -18,7 +18,7 @@ function useLocalStorage<T>(key: string, initialValue: T = {} as T) {
 		return () => {
 			window.removeEventListener('storage', handleStorageChange);
 		};
-	}, [key, initialValue]);
+	});
 
 	function getValue(key: string) {
 		try {
@@ -35,7 +35,7 @@ function useLocalStorage<T>(key: string, initialValue: T = {} as T) {
 		try {
 			const valueToStore =
 				value instanceof Function ? value(storedValue) : value;
-			setStoredValue(valueToStore);
+			setStoredValue(() => valueToStore);
 			window.localStorage.setItem(key, JSON.stringify(valueToStore));
 		} catch (error) {
 			console.log(error);

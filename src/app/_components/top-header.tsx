@@ -13,10 +13,11 @@ const TopHeader = () => {
 	const handleLogout = () => {
 		removeValue('user');
 		router.push('/');
+		setName('');
 	};
 
 	useEffect(() => {
-		setName(user.name);
+		if (user) setName(user.name);
 	}, [user, user.name]);
 
 	return (
