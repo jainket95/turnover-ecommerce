@@ -98,7 +98,7 @@ const Login = ({ type, setUser, toggleForm }: LoginProps) => {
 	useEffect(() => {
 		setFormData(getFormState(isLoginForm));
 		removeValue('user');
-	}, [type, isLoginForm]);
+	}, [type, isLoginForm, removeValue]);
 
 	const { mutate: mutateVerificationCode } =
 		api.user.sendVerificationCode.useMutation(

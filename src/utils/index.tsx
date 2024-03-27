@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { Category } from '~/app/types';
+import { type Category } from '~/app/types';
 
 export const generateRandom = (length: number): string => {
 	return Math.random()

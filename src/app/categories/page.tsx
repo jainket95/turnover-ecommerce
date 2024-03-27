@@ -31,7 +31,7 @@ const initialPageState: Page = {
 
 const categoriesData = generateFakeCategories();
 
-const Categories = () => {
+const Page = () => {
 	const router = useRouter();
 	const { storedValue: user } = useLocalStorage<User>('user');
 	const [categories, setCategories] = useState<Category[]>([]);
@@ -217,4 +217,4 @@ const Categories = () => {
 	);
 };
 
-export default Categories;
+export default Page;
